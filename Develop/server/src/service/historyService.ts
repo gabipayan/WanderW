@@ -37,7 +37,7 @@ class HistoryService {
     return cities.map((city: any) => new City(city.name, city.id));
   }
   // TODO Define an addCity method that adds a city to the searchHistory.json file
-  async addCity(city: string) {
+  async saveCity(city: string) {
     const cities = await this.read();
     const newCity = new City(city, cities.length.toString());
     cities.push(newCity);
