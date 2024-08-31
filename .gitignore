@@ -133,3 +133,4 @@ dist
 client/dist/*
 server/dist/*
 
+Develop/server/searchHistory.json
