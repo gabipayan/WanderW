@@ -2,10 +2,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // TODO: Define an interface for the Coordinates object
- interface Coordinates {
+interface Coordinates {
   lat: number;
   lon: number;
- }
+}
 
 // TODO: Define a class for the Weather object
 class Weather {
@@ -45,19 +45,16 @@ class WeatherService {
     try {
       const response = await fetch(query);
       // Log the full response to inspect it
-    console.log('Full Response:', response);
+      //console.log('Full Response:', response);
 
- // Check if the response is JSON
- const contentType = response.headers.get('content-type');
- if (!response.ok || !contentType?.includes('application/json')) {
-   // Log and throw an error if not JSON
-   const text = await response.text();
-   console.error('Error response:', text);
-   throw new Error('Failed to fetch valid JSON data');
- }
-      // if (!response.ok) {
-      //   throw new Error(`Failed to fetch data: ${response.statusText}`);
-      // }
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!response.ok || !contentType?.includes('application/json')) {
+        // Log and throw an error if not JSON
+        const text = await response.text();
+        console.error('Error response:', text);
+        throw new Error('Failed to fetch valid JSON data');
+      }
       const data = await response.json();
       return data;
     } catch (error) {
@@ -79,24 +76,34 @@ class WeatherService {
   // TODO: Create buildWeatherQuery method
   private buildWeatherQuery(coordinates: Coordinates): string {
     const { lat, lon } = coordinates;
+    return `${this.baseURL}/data/2.5/weather?lat=${lat}&lon=${lon}&exclude=minutely,hourly&appid=${this.apiKey}`;
+  }
+
+  private buildForecastQuery(coordinates: Coordinates): string {
+    const { lat, lon } = coordinates;
     return `${this.baseURL}/data/2.5/forecast?lat=${lat}&lon=${lon}&exclude=minutely,hourly&appid=${this.apiKey}`;
   }
   // TODO: Create fetchAndDestructureLocationData method
   private async fetchAndDestructureLocationData() {
     const query = this.buildGeocodeQuery();
     const locationData = await this.fetchLocationData(query);
-    console.log(locationData);
     return this.destructureLocationData(locationData[0]);
   }
   // TODO: Create fetchWeatherData method
   private async fetchWeatherData(coordinates: Coordinates) {
     const query = this.buildWeatherQuery(coordinates);
-    console.log(query);
+    return await this.fetchLocationData(query);
+  }
+  private async fetchForecastData(coordinates: Coordinates) {
+    const query = this.buildForecastQuery(coordinates);
     return await this.fetchLocationData(query);
   }
   // TODO: Build parseCurrentWeather method
   private parseCurrentWeather(response: any) {
-    console.log(response);
+    // checking if response is defined and has the properties I expect
+    if (!response || !response.name || !response.weather || !response.main || !response.wind) {
+      throw new Error('Invalid weather data structure');
+    }
     const { name } = response;
     const { dt, weather, main, wind } = response;
     const { description, icon } = weather[0];
@@ -105,11 +112,15 @@ class WeatherService {
     return new Weather(name, dt, description, temp, humidity, speed, icon);
   }
   // TODO: Complete buildForecastArray method
-  private buildForecastArray(currentWeather: Weather, weatherData: any[]) {
-    const forecastArray = weatherData.map((data: any) => {
-      const { dt, weather, temp, humidity, wind_speed } = data;
+  private buildForecastArray(forecastData: any) {
+    if (!forecastData || !forecastData.list) {
+      throw new Error('Invalid forecast data structure');
+    }
+    const forecastArray = forecastData.list.map((forecast: any) => {
+      const { dt, weather, main } = forecast;
       const { description, icon } = weather[0];
-      return new Weather(currentWeather.city, dt, description, temp.day, humidity, wind_speed, icon);
+      const { temp, humidity } = main;
+      return new Weather(this.cityName, dt, description, temp, humidity, 0, icon);
     });
     return forecastArray;
   }
@@ -117,11 +128,11 @@ class WeatherService {
   async getWeatherForCity(city: string) {
     this.cityName = city;
     const coordinates = await this.fetchAndDestructureLocationData();
-    console.log(coordinates);
     const weatherData = await this.fetchWeatherData(coordinates);
-    const currentWeather = this.parseCurrentWeather(weatherData.current);
-    const forecastArray = this.buildForecastArray(currentWeather, weatherData.daily);
-    return { currentWeather, forecastArray };
+    const forecastData = await this.fetchForecastData(coordinates);
+    const currentWeather = this.parseCurrentWeather(weatherData);
+    const forecastArray = this.buildForecastArray(forecastData);
+    return [currentWeather, ...forecastArray];
   }
 }
 

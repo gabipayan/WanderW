@@ -14,12 +14,12 @@ router.post('/', async (req: Request, res: Response) => {
       return;
     }
     const weatherForCity = await WeatherService.getWeatherForCity(city); // error here
-      console.log(weatherForCity);
-      
-      
-      // TODO: save city to search history
-      HistoryService.saveCity(city);
-      res.json(weatherForCity);
+    //console.log(weatherForCity);
+
+
+    // TODO: save city to search history
+    HistoryService.saveCity(city);
+    res.json(weatherForCity);
   } catch (error) {
     // Handle error here
     console.error(error);
