@@ -39,6 +39,10 @@ class WeatherService {
     this.apiKey = process.env.API_KEY || '';
     this.cityName = '';
   }
+// method to convert kelvin to fahrenheit
+  private kelvinToFahrenheit(kelvin: number): number {
+    return Number(((kelvin - 273.15) * (9/5) + 32).toFixed(2));
+  }
 
   // TODO: Create fetchLocationData method
   private async fetchLocationData(query: string) {
@@ -109,7 +113,7 @@ class WeatherService {
     const { description, icon } = weather[0];
     const { temp, humidity } = main;
     const { speed } = wind;
-    return new Weather(name, dt, description, temp, humidity, speed, icon);
+    return new Weather(name, dt, description, this.kelvinToFahrenheit(temp), humidity, speed, icon);
   }
   // TODO: Complete buildForecastArray method
   private buildForecastArray(forecastData: any) {
@@ -119,8 +123,9 @@ class WeatherService {
     const forecastArray = forecastData.list.map((forecast: any) => {
       const { dt, weather, main } = forecast;
       const { description, icon } = weather[0];
+      const {speed} = forecast.wind;
       const { temp, humidity } = main;
-      return new Weather(this.cityName, dt, description, temp, humidity, 0, icon);
+      return new Weather(this.cityName, dt, description, this.kelvinToFahrenheit(temp), humidity, speed, icon);
     });
     return forecastArray;
   }

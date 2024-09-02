@@ -77,11 +77,11 @@ Render Functions
 */
 
 const renderCurrentWeather = (currentWeather: any): void => {
-  const { city, date, icon, iconDescription, tempF, windSpeed, humidity } =
+  const { city, date, icon, iconDescription, temp, wind, humidity } =
     currentWeather;
-
+const dateTime = new Date (date*1000).toLocaleDateString();
   // convert the following to typescript
-  heading.textContent = `${city} (${date})`;
+  heading.textContent = `${city} (${dateTime})`;
   weatherIcon.setAttribute(
     'src',
     `https://openweathermap.org/img/w/${icon}.png`
@@ -89,8 +89,8 @@ const renderCurrentWeather = (currentWeather: any): void => {
   weatherIcon.setAttribute('alt', iconDescription);
   weatherIcon.setAttribute('class', 'weather-img');
   heading.append(weatherIcon);
-  tempEl.textContent = `Temp: ${tempF}°F`;
-  windEl.textContent = `Wind: ${windSpeed} MPH`;
+  tempEl.textContent = `Temp: ${temp}°F`;
+  windEl.textContent = `Wind: ${wind} MPH`;
   humidityEl.textContent = `Humidity: ${humidity} %`;
 
   if (todayContainer) {
@@ -118,20 +118,21 @@ const renderForecast = (forecast: any): void => {
 };
 
 const renderForecastCard = (forecast: any) => {
-  const { date, icon, iconDescription, tempF, windSpeed, humidity } = forecast;
+  const { date, icon, iconDescription, temp, wind, humidity } = forecast;
+  const dateTime = new Date (date*1000).toLocaleDateString();
 
   const { col, cardTitle, weatherIcon, tempEl, windEl, humidityEl } =
     createForecastCard();
 
   // Add content to elements
-  cardTitle.textContent = date;
+  cardTitle.textContent = dateTime;
   weatherIcon.setAttribute(
     'src',
     `https://openweathermap.org/img/w/${icon}.png`
   );
   weatherIcon.setAttribute('alt', iconDescription);
-  tempEl.textContent = `Temp: ${tempF} °F`;
-  windEl.textContent = `Wind: ${windSpeed} MPH`;
+  tempEl.textContent = `Temp: ${temp} °F`;
+  windEl.textContent = `Wind: ${wind} MPH`;
   humidityEl.textContent = `Humidity: ${humidity} %`;
 
   if (forecastContainer) {
